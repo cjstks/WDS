@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WDS vs 수동 설치 비교</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .method {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .method-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .manual .method-title {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .wds .method-title {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .admin {
+            width: 60px;
+            height: 60px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            position: relative;
+            margin: 20px auto;
+        }
+
+        .admin::before {
+            content: '👨‍💼';
+            font-size: 35px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .pc-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            min-height: 300px;
+        }
+
+        .pc {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #e0e0e0;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .pc.installing {
+            background: #ffd93d;
+            animation: pulse 1s infinite;
+        }
+
+        .pc.installed {
+            background: #6bcf7f;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .server {
+            width: 100px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            margin: 20px auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .network-line {
+            stroke: #4facfe;
+            stroke-width: 2;
+            stroke-dasharray: 5, 5;
+            animation: dash 0.5s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -10;
+            }
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🖥️ Windows 배포 방식 비교</h1>
+
+    <div class="comparison">
+        <div class="method manual">
+            <div class="method-title">수동 설치 (100대)</div>
+            <div class="admin"></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="manualProgress">0%</div>
+            </div>
+            <div class="pc-grid" id="manualGrid"></div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>⏱️ 소요 시간:</span>
+                    <span class="stat-value" id="manualTime">0분</span>
+                </div>
+                <div class="stat-item">
+                    <span>👨‍💼 필요 인력:</span>
+                    <span class="stat-value">관리자 1명 (계속 작업)</span>
+                </div>
+                <div class="stat-item">
+                    <span>💿 설치 방식:</span>
+                    <span class="stat-value">USB/DVD 직접 삽입</span>
+                </div>
+                <div class="stat-item">
+                    <span>📊 설치 완료:</span>
+                    <span class="stat-value" id="manualCount">0/100대</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="method wds">
+            <div class="method-title">WDS 설치 (100대)</div>
+            <div class="server">🖥️</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="wdsProgress">0%</div>
+            </div>
+            <svg id="networkSvg"></svg>
+            <div class="pc-grid" id="wdsGrid"></div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>⏱️ 소요 시간:</span>
+                    <span class="stat-value" id="wdsTime">0분</span>
+                </div>
+                <div class="stat-item">
+                    <span>👨‍💼 필요 인력:</span>
+                    <span class="stat-value">초기 설정만 (자동화)</span>
+                </div>
+                <div class="stat-item">
+                    <span>🌐 설치 방식:</span>
+                    <span class="stat-value">네트워크 부팅 (PXE)</span>
+                </div>
+                <div class="stat-item">
+                    <span>📊 설치 완료:</span>
+                    <span class="stat-value" id="wdsCount">0/100대</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="startComparison()">🚀 비교 시작</button>
+    </div>
+</div>
+
+<script>
+    let manualInterval, wdsInterval;
+    let manualInstalled = 0;
+    let wdsInstalled = 0;
+    let manualMinutes = 0;
+    let wdsMinutes = 0;
+
+    // PC 그리드 생성
+    function createPCGrid() {
+        const manualGrid = document.getElementById('manualGrid');
+        const wdsGrid = document.getElementById('wdsGrid');
+
+        manualGrid.innerHTML = '';
+        wdsGrid.innerHTML = '';
+
+        for (let i = 0; i < 100; i++) {
+            const manualPC = document.createElement('div');
+            manualPC.className = 'pc';
+            manualPC.innerHTML = '💻';
+            manualPC.id = `manual-pc-${i}`;
+            manualGrid.appendChild(manualPC);
+
+            const wdsPC = document.createElement('div');
+            wdsPC.className = 'pc';
+            wdsPC.innerHTML = '💻';
+            wdsPC.id = `wds-pc-${i}`;
+            wdsGrid.appendChild(wdsPC);
+        }
+    }
+
+    // 네트워크 라인 그리기
+    function drawNetworkLines() {
+        const svg = document.getElementById('networkSvg');
+        const wdsGrid = document.getElementById('wdsGrid');
+        const server = document.querySelector('.wds .server');
+
+        if (!server || !wdsGrid) return;
+
+        const serverRect = server.getBoundingClientRect();
+        const gridRect = wdsGrid.getBoundingClientRect();
+        const svgRect = svg.getBoundingClientRect();
+
+        const serverX = serverRect.left + serverRect.width / 2 - svgRect.left;
+        const serverY = serverRect.bottom - svgRect.top;
+
+        svg.innerHTML = '';
+
+        for (let i = 0; i < 20; i++) {
+            const pc = document.getElementById(`wds-pc-${i}`);
+            if (pc && pc.classList.contains('installing')) {
+                const pcRect = pc.getBoundingClientRect();
+                const pcX = pcRect.left + pcRect.width / 2 - svgRect.left;
+                const pcY = pcRect.top + pcRect.height / 2 - svgRect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', serverX);
+                line.setAttribute('y1', serverY);
+                line.setAttribute('x2', pcX);
+                line.setAttribute('y2', pcY);
+                line.classList.add('network-line');
+                svg.appendChild(line);
+            }
+        }
+    }
+
+    function startComparison() {
+        // 초기화
+        clearInterval(manualInterval);
+        clearInterval(wdsInterval);
+        manualInstalled = 0;
+        wdsInstalled = 0;
+        manualMinutes = 0;
+        wdsMinutes = 0;
+
+        createPCGrid();
+
+        // 수동 설치: 한 대씩 천천히 (30분/대)
+        manualInterval = setInterval(() => {
+            if (manualInstalled < 100) {
+                const pc = document.getElementById(`manual-pc-${manualInstalled}`);
+                pc.classList.add('installing');
+
+                setTimeout(() => {
+                    pc.classList.remove('installing');
+                    pc.classList.add('installed');
+                    pc.innerHTML = '✅';
+                    manualInstalled++;
+                    updateStats();
+                }, 1000);
+
+                manualMinutes += 30;
+            } else {
+                clearInterval(manualInterval);
+            }
+        }, 1200);
+
+        // WDS 설치: 동시에 20대씩 빠르게 (1분/대)
+        let wdsBatch = 0;
+        wdsInterval = setInterval(() => {
+            if (wdsInstalled < 100) {
+                const batchSize = Math.min(20, 100 - wdsInstalled);
+
+                for (let i = 0; i < batchSize; i++) {
+                    const pc = document.getElementById(`wds-pc-${wdsInstalled + i}`);
+                    pc.classList.add('installing');
+                }
+
+                drawNetworkLines();
+
+                setTimeout(() => {
+                    for (let i = 0; i < batchSize; i++) {
+                        const pc = document.getElementById(`wds-pc-${wdsInstalled + i}`);
+                        pc.classList.remove('installing');
+                        pc.classList.add('installed');
+                        pc.innerHTML = '✅';
+                    }
+                    wdsInstalled += batchSize;
+                    updateStats();
+                    drawNetworkLines();
+                }, 2000);
+
+                wdsMinutes += 1;
+            } else {
+                clearInterval(wdsInterval);
+            }
+        }, 2500);
+
+        // 시간 업데이트
+        setInterval(updateStats, 100);
+    }
+
+    function updateStats() {
+        // 수동 설치
+        document.getElementById('manualCount').textContent = `${manualInstalled}/100대`;
+        document.getElementById('manualTime').textContent = `${manualMinutes}분 (약 ${Math.floor(manualMinutes/60)}시간 ${manualMinutes%60}분)`;
+        document.getElementById('manualProgress').style.width = `${manualInstalled}%`;
+        document.getElementById('manualProgress').textContent = `${manualInstalled}%`;
+
+        // WDS 설치
+        document.getElementById('wdsCount').textContent = `${wdsInstalled}/100대`;
+        document.getElementById('wdsTime').textContent = `${wdsMinutes}분`;
+        document.getElementById('wdsProgress').style.width = `${wdsInstalled}%`;
+        document.getElementById('wdsProgress').textContent = `${wdsInstalled}%`;
+    }
+
+    createPCGrid();
+</script>
+</body>
+</html>
