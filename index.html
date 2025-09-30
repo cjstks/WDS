@@ -365,18 +365,21 @@
         // 수동 설치: 한 대씩 천천히 (30분/대)
         manualInterval = setInterval(() => {
             if (manualInstalled < 100) {
-                const pc = document.getElementById(`manual-pc-${manualInstalled}`);
+                const currentIndex = manualInstalled;
+                const pc = document.getElementById(`manual-pc-${currentIndex}`);
                 pc.classList.add('installing');
+
+                manualInstalled++;
+                manualMinutes += 30;
 
                 setTimeout(() => {
                     pc.classList.remove('installing');
                     pc.classList.add('installed');
                     pc.innerHTML = '✅';
-                    manualInstalled++;
                     updateStats();
                 }, 1000);
 
-                manualMinutes += 30;
+                updateStats();
             } else {
                 clearInterval(manualInterval);
             }
